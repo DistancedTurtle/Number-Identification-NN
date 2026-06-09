@@ -1,11 +1,12 @@
 import numpy as np
-import torch
+import torchvision
 from torchvision import datasets, transforms
+import utils
 
-transform = transforms.Compose([transfrom.ToTensor])
+transform = transforms.Compose([transforms.ToTensor])
 
-train = torchvision.datasets.MNIST(root='./data', train=True, download=true, transform=transform)
-test = torchvision.datasets.MNIST(root='./data', train=False, download=true, transform=transform)
+train = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+test = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 
 X_train = train.data.numpy()
 X_test = test.data.numpy()
@@ -13,6 +14,9 @@ X_test = test.data.numpy()
 y_train = train.targets.numpy()
 y_test = test.targets.numpy()
 
-print(f"Train images: {X_train.shape}, type: {type(X_train)}")
-print(f"Train labels: {y_train.shape}, type: {type(y_train)}")
+utils.print_image_grid(X_train,0)
 
+X_train = utils.normalize(X_train)
+X_test = utils.normalize(X_test)
+
+utils.print_image_grid(X_train,0)
