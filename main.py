@@ -5,6 +5,7 @@ import utils
 
 transform = transforms.Compose([transforms.ToTensor])
 
+#load data
 train = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
 test = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 
@@ -14,9 +15,44 @@ X_test = test.data.numpy()
 y_train = train.targets.numpy()
 y_test = test.targets.numpy()
 
-utils.print_image_grid(X_train,0)
-
 X_train = utils.normalize(X_train)
 X_test = utils.normalize(X_test)
 
-utils.print_image_grid(X_train,0)
+#flatten data 
+X_train = X_train.reshape(-1, 784)
+X_test = X_test.reshape(-1,784)
+
+print(X_train[0,:])
+
+#one hot encode y_train and y_test
+identity_matrix = np.eye(10)
+
+'''explanation:
+y_train = np.array([2, 0, 1])
+identity_matrix = np.eye(3)
+Row 0 -> [1, 0, 0]
+Row 1 -> [0, 1, 0]
+Row 2 -> [0, 0, 1]
+numpy takes the values of the array(y_train in this case) and then uses those 
+values as indexes and selects those rows from the indexed matrix to be added to new array
+[
+ [0, 0, 1],  # Represents the original '2'
+ [1, 0, 0],  # Represents the original '0'
+ [0, 1, 0]   # Represents the original '1'
+]'''
+
+y_train_oh = identity_matrix[y_train]
+
+
+
+'''print checks for shape:
+print("X_train shape:", X_train.shape)       # Should be (60000, 784)
+print("y_train_oh shape:", y_train_oh.shape) # Should be (60000, 10)
+print("X_test shape:", X_test.shape)         # Should be (10000, 784)
+print("y_test shape:", y_test.shape)         # Should be (10000,)'''
+
+b_1=np.zeros(1,64)
+b_2=np.zeros(1,10)
+
+w_1=np.random.randn(784,64) * .01
+w_2=np.random.randn(64,10) * .01
