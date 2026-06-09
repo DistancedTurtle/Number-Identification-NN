@@ -24,7 +24,7 @@ X_test = X_test.reshape(-1,784)
 
 print(X_train[0,:])
 
-#one hot encode y_train and y_test
+#one hot encode y_train
 identity_matrix = np.eye(10)
 
 '''explanation:
