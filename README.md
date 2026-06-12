@@ -44,7 +44,7 @@ python main.py --test
 
 ## Results
 
-Achieves ~**98.5% accuracy** on the MNIST test set after 2000 epochs.
+Achieves ~**97.3% accuracy** on the MNIST test set after 2000 epochs.
 
 ---
 
