@@ -219,3 +219,6 @@ __marimo__/
 
 #datasets
 data/
+
+#numpy
+*.npz
