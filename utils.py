@@ -11,8 +11,9 @@ def ReLU(arr: np.ndarray) -> np.ndarray:
     return np.maximum(0, arr)
 
 def softmax(arr):
-    arr = np.exp(arr)/(np.sum(np.exp(arr), axis = 1, keepdims=True))
-    return(arr)
+    shifted = arr - arr.max(axis=1, keepdims=True)
+    exp = np.exp(shifted)
+    return exp / np.sum(exp, axis=1, keepdims=True)
 
 def test_model(w_1, w_2, b_1, b_2, X_test, y_test):
 
