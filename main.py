@@ -22,8 +22,6 @@ X_test = utils.normalize(X_test)
 X_train = X_train.reshape(-1, 784)
 X_test = X_test.reshape(-1,784)
 
-print(X_train[0,:])
-
 #one hot encode y_train
 identity_matrix = np.eye(10)
 
@@ -51,8 +49,41 @@ print("y_train_oh shape:", y_train_oh.shape) # Should be (60000, 10)
 print("X_test shape:", X_test.shape)         # Should be (10000, 784)
 print("y_test shape:", y_test.shape)         # Should be (10000,)'''
 
-b_1=np.zeros(1,64)
-b_2=np.zeros(1,10)
+b_1=np.zeros((1,64))
+b_2=np.zeros((1,10))
 
 w_1=np.random.randn(784,64) * .01
 w_2=np.random.randn(64,10) * .01
+epochs = 1000
+learning_rate = .5
+m = X_train.shape[0]
+for epoch in range(epochs):
+    h1 = utils.ReLU(np.matmul(X_train,w_1) + b_1)
+    h2 = utils.softmax(np.matmul(h1,w_2) + b_2)
+
+    predictions = np.argmax(h2, axis=1)
+
+    #Categorical Cross Entropy loss calculation 
+
+    loss = -1 * np.sum(y_train_oh * np.log(h2 + 1e-15)) / m
+
+    #efficency gauge
+    accuracy = np.mean(predictions == y_train) * 100
+    if epoch % 20 == 0:
+        print(f"Epoch {epoch:03d} -> Loss: {loss:.4f} | Accuracy: {accuracy:.2f}%")
+
+    dz2 = h2 - y_train_oh
+    dw2 = np.matmul(h1.T, dz2) / m
+    db2 = np.sum(dz2, axis=0, keepdims=True) / m
+
+    dz1 = np.matmul(dz2, w_2.T) 
+    dz1[h1 <= 0] = 0  
+    dw1 = np.matmul(X_train.T, dz1) / m
+    db1 = np.sum(dz1, axis = 0, keepdims = True) / m
+
+    w_1 -= learning_rate * dw1
+    b_1 -= learning_rate * db1
+    w_2 -= learning_rate * dw2
+    b_2 -= learning_rate * db2
+
+np.savez("mnist_weights.npz", w_1=w_1, b_1=b_1, w_2=w_2, b_2=b_2)
