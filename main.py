@@ -2,6 +2,7 @@ import numpy as np
 import torchvision
 from torchvision import datasets, transforms
 import utils
+import sys  
 
 transform = transforms.Compose([transforms.ToTensor])
 
@@ -34,56 +35,68 @@ Row 2 -> [0, 0, 1]
 numpy takes the values of the array(y_train in this case) and then uses those 
 values as indexes and selects those rows from the indexed matrix to be added to new array
 [
- [0, 0, 1],  # Represents the original '2'
- [1, 0, 0],  # Represents the original '0'
- [0, 1, 0]   # Represents the original '1'
+[0, 0, 1],  # Represents the original '2'
+[1, 0, 0],  # Represents the original '0'
+[0, 1, 0]   # Represents the original '1'
 ]'''
-
-y_train_oh = identity_matrix[y_train]
-
-
-
-'''print checks for shape:
-print("X_train shape:", X_train.shape)       # Should be (60000, 784)
-print("y_train_oh shape:", y_train_oh.shape) # Should be (60000, 10)
-print("X_test shape:", X_test.shape)         # Should be (10000, 784)
-print("y_test shape:", y_test.shape)         # Should be (10000,)'''
 
 b_1=np.zeros((1,64))
 b_2=np.zeros((1,10))
 
 w_1=np.random.randn(784,64) * .01
 w_2=np.random.randn(64,10) * .01
-epochs = 1000
+
+epochs = 2000
 learning_rate = .5
 m = X_train.shape[0]
-for epoch in range(epochs):
-    h1 = utils.ReLU(np.matmul(X_train,w_1) + b_1)
-    h2 = utils.softmax(np.matmul(h1,w_2) + b_2)
 
-    predictions = np.argmax(h2, axis=1)
+y_train_oh = identity_matrix[y_train]
 
-    #Categorical Cross Entropy loss calculation 
+if len(sys.argv) > 1 and sys.argv[1] == "--test":
+    print("Skipping training. Loading saved weights for testing...")
+    try:
+        saved_data = np.load("mnist_weights.npz")
+        w_1 = saved_data["w_1"]
+        b_1 = saved_data["b_1"]
+        w_2 = saved_data["w_2"]
+        b_2 = saved_data["b_2"]
+        print("Weights loaded successfully!")
+    except FileNotFoundError:
+        print("Error: 'mnist_weights.npz' not found. Please train the model first.")
+        sys.exit(1)
+        
+else:
+    for epoch in range(epochs):
+        #hidden layers with ReLU and softmax activation for classification
+        h1 = utils.ReLU(np.matmul(X_train,w_1) + b_1)
+        h2 = utils.softmax(np.matmul(h1,w_2) + b_2)
 
-    loss = -1 * np.sum(y_train_oh * np.log(h2 + 1e-15)) / m
+        predictions = np.argmax(h2, axis=1)
 
-    #efficency gauge
-    accuracy = np.mean(predictions == y_train) * 100
-    if epoch % 20 == 0:
-        print(f"Epoch {epoch:03d} -> Loss: {loss:.4f} | Accuracy: {accuracy:.2f}%")
+        #Categorical Cross Entropy loss calculation 
+        loss = -1 * np.sum(y_train_oh * np.log(h2 + 1e-15)) / m
 
-    dz2 = h2 - y_train_oh
-    dw2 = np.matmul(h1.T, dz2) / m
-    db2 = np.sum(dz2, axis=0, keepdims=True) / m
+        #gauge for loss and model accuracy
+        accuracy = np.mean(predictions == y_train) * 100
+        if epoch % 20 == 0:
+            print(f"Epoch {epoch:03d} -> Loss: {loss:.4f} | Accuracy: {accuracy:.2f}%")
 
-    dz1 = np.matmul(dz2, w_2.T) 
-    dz1[h1 <= 0] = 0  
-    dw1 = np.matmul(X_train.T, dz1) / m
-    db1 = np.sum(dz1, axis = 0, keepdims = True) / m
+        #calculate derivatives for backpropagation
+        dz2 = h2 - y_train_oh
+        dw2 = np.matmul(h1.T, dz2) / m
+        db2 = np.sum(dz2, axis=0, keepdims=True) / m
 
-    w_1 -= learning_rate * dw1
-    b_1 -= learning_rate * db1
-    w_2 -= learning_rate * dw2
-    b_2 -= learning_rate * db2
+        dz1 = np.matmul(dz2, w_2.T) 
+        dz1[h1 <= 0] = 0  
+        dw1 = np.matmul(X_train.T, dz1) / m
+        db1 = np.sum(dz1, axis = 0, keepdims = True) / m
 
-np.savez("mnist_weights.npz", w_1=w_1, b_1=b_1, w_2=w_2, b_2=b_2)
+        #update weights and biases
+        w_1 -= learning_rate * dw1
+        b_1 -= learning_rate * db1
+        w_2 -= learning_rate * dw2
+        b_2 -= learning_rate * db2
+
+    np.savez("mnist_weights.npz", w_1=w_1, b_1=b_1, w_2=w_2, b_2=b_2)
+
+utils.test_model(w_1, w_2, b_1, b_2, X_test, y_test)
