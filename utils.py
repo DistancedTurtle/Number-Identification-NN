@@ -1,6 +1,6 @@
 import numpy as np
 
-def normalize(array: np.ndarray) -> np.ndarray[float]: 
+def normalize(array: np.ndarray) -> np.ndarray: 
     return(array/255.0)
 
 def print_image_grid(array: np.ndarray, image_index: int):
@@ -8,8 +8,7 @@ def print_image_grid(array: np.ndarray, image_index: int):
     print(array[image_index,:,:])
 
 def ReLU(arr: np.ndarray) -> np.ndarray:
-    arr.clip(min=0, out=arr)
-    return(arr)
+    return np.maximum(0, arr)
 
 def softmax(arr):
     arr = np.exp(arr)/(np.sum(np.exp(arr), axis = 1, keepdims=True))
